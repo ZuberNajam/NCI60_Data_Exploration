@@ -1,0 +1,124 @@
+---
+title: "Zuber's Assignment 2 R Notebook"
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+---
+
+In this assignment, we will be exploring the NCI60 dataset from Ross et al. (Nature Genetics 2000). To complete this assignment, insert the requested information (code, answers, and/or plots) under corresponding parts of each question, and then save the document as a pdf and upload it to CANVAS. For numerical answers, you may round to the nearest hundredth (two decimal places). Note that some questions require multiple answers, so please ensure that your answers are complete to receive full credit.
+
+1) 1)	First, we will characterize the NCI60 dataset. 
+
+a.	[10 points] The NCI60 dataset is located in the ISLR package in CRAN. Install ISLR, and access the help documentation for NCI60. Provide your code, and briefly describe the NCI60 dataset. 
+```{r}
+install.packages("ISLR")
+library("ISLR")
+```
+```{r}
+help(NCI60, package="ISLR")
+```
+As per the documentation, the NCI60 data-set contains expression levels on 6830 genes from 64 cancer cell lines.
+
+
+b. [10 points] Create a single histogram for all of the gene expression data. Do not include a title, label the x axis “Gene Expression”, and color the bins in light blue. Provide your code and the plot. 
+
+```{r}
+mydata=NCI60$data
+mylabs=NCI60$labs
+colors =c("light blue")
+hist(mydata, main = NULL, col=colors, xlab ="Gene Expression")
+```
+c.	[5 points] Do you think the data should be transformed? Briefly explain your reasoning. 
+
+Data transformations are usually done to tame extreme values. Based on the histogram above, we do not really see too many outliers that would benefit from a transformation.The overall shape of the histogram points to it being a normal shape rather than an abnormal or skewed shape. Therefore I do not think that data transformation is necessary here.
+...
+
+d.	[5] points] Based on the range of values of the gene expression data, what type of preprocessing has been performed? Briefly explain your reasoning.
+
+
+```{r}
+range(mydata, na.rm = FALSE)
+```
+
+
+The range of values in the data-set range when rounded to the nearest tenth is from -6.9 to 8.7. Based of off what the histogram above shows, the data has gone through standardization. My reasoning for this is that the majority of data is displayed between values of -5 and 5 with the vast majority of data present near 0. This indicates standardization, which involves subtracting the mean and dividing by the std has been done.
+
+
+2.	Next, we will use hierarchical clustering to explore relationships among cell lines. 
+
+a. [15 points] Perform hierarchical clustering with the Euclidian distance metric and complete linkage. Create a dendrogram without a title, subtitle, or x axis label. Use the labels argument to label cell lines by cancer type in your dendrogram. Provide your code and the dendrogram.  
+
+note** data appears to already be transposed so I will not transpose the data within the dist function.
+```{r}
+d<-dist(mydata)
+```
+
+```{r}
+hclust_complete <- hclust(d, method = "complete")
+```
+```{r}
+plot(hclust_complete, main = NULL, sub = "", xlab="", labels =  mylabs)
+```
+
+
+b.	[10 points] Cut your dendrogram at a height of 100, and print a table to the console that shows the resulting clusters and number of cell lines in each. Provide your code and the console output
+
+```{r}
+hclust_comp_h100 <- cutree(hclust_complete, h = 100)
+table(hclust_comp_h100)
+```
+
+
+c.	[5 points] Examine your table from question 2b. How many clusters did you obtain? How may cell lines are in the smallest cluster, and how many are in the largest cluster?
+
+
+We obtain 7 clusters. The smallest cluster, 6, has 2 cell lines and the largest cluster, 2, has 21 cell lines.
+
+
+
+d.	[10 points] Print another table to the console that shows the clusters in rows and cancer types in columns. Provide your code and the console output.  
+
+```{r}
+#help(table)
+table(hclust_comp_h100, mylabs)
+```
+
+
+e.	[10 points] Examine your table from question 2d. Considering only cancer types represented by more than one cell line, which have cell lines that are all in the same cluster? What does this mean about these cancer types relative to others with cell lines spread across multiple clusters?
+
+Of the cancer types that are represented by more than one cell lines, colon cancer has all the cell lines in cluster 5, leukemia has all the cell lines in cluster 4, and prostate cancer has all the cell lines in cluster 2. What this indicates to me is that the cell lines from these types of cancer are far more similar to each other when it comes to gene expression than are the cell lines from the types of cancers that are spread across multiple clusters.
+
+
+
+3)	Last, we will perform principal components analysis (PCA) to reduce the dimensionality of the data. 
+
+
+a.	[5 points] Perform PCA with and without standardization, and print summaries of the results of both approaches to the console. Provide your code (console output not required here). 
+
+```{r}
+pca_stand <-prcomp(mydata, center = TRUE, scale = TRUE)
+summary(pca_stand)
+```
+```{r}
+pca_notstand <-prcomp(mydata)
+summary(pca_notstand)
+```
+
+
+
+b.	[5 points] Examine the console output from question 3a. How many total principal components do you get with each approach? Briefly explain why this is the case. 
+
+Both cases result in principal components of 64. This makes sense because we fed the function the complete data-set which has 64 dimensions.
+
+
+c.	[5 points] Again examine the console output from question 3a. What percentage of the total variation in the data is captured by the first principal component with each approach? 
+
+With the standardized approach, we capture 0.1136 proportion (11.36%) of the variation with the first PCA. With the un-standardized approach, we capture 0.1489 proportion (14.89%) of the variation with the first PCA.
+
+
+d.	[5 points] Compare the console output for both approaches from question 3a. Which approach is better? Briefly explain your reasoning.   
+
+From comparing the console output for both approaches, my conclusion is that the un-standardized approach proved slightly better. My argument for this is that by PC62, 0.99790 proportion of the variance was explained with the un-standardized approach. However, with the standardized approach, a slightly lower proportion of the variance was explained by pc62 at 0.99761. By PC63, 100% of the variance shows as being explained by either approach.
+
